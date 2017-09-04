@@ -93,24 +93,18 @@ class RollbarSourceMapPlugin {
         contentType: 'application/json'
       });
     }.bind(this), function(err, res, body) {
-      if (res && res.statusCode === 200) {
-        if (!this.silent) {
-          console.info(`Uploaded ${sourceMap} to Rollbar`); // eslint-disable-line no-console
-        }
-        return cb();
+      const statusCode = res && res.statusCode;
+
+      if (statusCode !== 200) {
+        cb(this.handleError(sourceMap, err, statusCode, body));
+        return;
       }
 
-      const errMessage = `failed to upload ${sourceMap} to Rollbar`;
-      if (err && err.message) {
-        return cb(new VError(err, errMessage));
+      if (!this.silent) {
+        console.info(`Uploaded ${sourceMap} to Rollbar`); // eslint-disable-line no-console
       }
 
-      try {
-        const { message } = JSON.parse(body);
-        return cb(new Error(message ? `${errMessage}: ${message}` : errMessage));
-      } catch (parseErr) {
-        return cb(new VError(parseErr, errMessage));
-      }
+      cb();
     }.bind(this));
   }
 
@@ -124,6 +118,22 @@ class RollbarSourceMapPlugin {
       }
       return cb(null, results);
     });
+  }
+
+  handleError(sourceMap, err, statusCode, body) {
+    const errMessage = `failed to upload ${sourceMap} to Rollbar with status code ${statusCode}`;
+
+    if (err && err.message) {
+      return new VError(err, errMessage);
+    }
+
+    try {
+      const { message } = JSON.parse(body);
+      return new Error(message ? `${errMessage}: ${message}` : errMessage);
+    } catch (e) {
+      const parseError = new VError(e, `failed to parse ${body}`)
+      return new VError(parseError, errMessage);
+    }
   }
 }
 
