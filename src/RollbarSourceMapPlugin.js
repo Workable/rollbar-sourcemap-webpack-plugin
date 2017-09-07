@@ -75,6 +75,8 @@ class RollbarSourceMapPlugin {
 
   uploadSourceMap(compilation, { sourceFile, sourceMap }, cb) {
     async.retry({ times: this.retries, interval: 100 }, function (callback) {
+      console.info(`Attempting to upload ${sourceMap} to Rollbar`);
+
       const req = request.post(ROLLBAR_ENDPOINT, (err, res, body) => {
         if (!err && res.statusCode !== 200) {
           callback(new Error(''), res, body);
