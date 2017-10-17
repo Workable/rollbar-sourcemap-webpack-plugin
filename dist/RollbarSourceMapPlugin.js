@@ -193,7 +193,7 @@ var RollbarSourceMapPlugin = function () {
 
         return new Error(message ? errMessage + ': ' + message : errMessage);
       } catch (e) {
-        var parseError = new _verror2.default(e, 'failed to parse ' + body);
+        var parseError = new Error(e, 'failed to parse ' + body);
         return new _verror2.default(parseError, errMessage);
       }
     }
