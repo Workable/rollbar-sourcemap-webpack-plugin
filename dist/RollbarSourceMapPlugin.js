@@ -132,6 +132,10 @@ var RollbarSourceMapPlugin = function () {
       var sourceFile = _ref2.sourceFile,
           sourceMap = _ref2.sourceMap;
 
+      var minifiedFileUrl = '' + this.publicPath + sourceFile;
+
+      console.info('Uploading ' + sourceMap + ' for ' + minifiedFileUrl + ' to Rollbar'); // eslint-disable-line no-console
+
       _async2.default.retry({ times: this.retries, interval: 100 }, function (callback) {
         var req = _request2.default.post(_constants.ROLLBAR_ENDPOINT, function (err, res, body) {
           if (!err && res.statusCode !== 200) {
@@ -145,7 +149,7 @@ var RollbarSourceMapPlugin = function () {
         var form = req.form();
         form.append('access_token', this.accessToken);
         form.append('version', this.version);
-        form.append('minified_url', this.publicPath + '/' + sourceFile);
+        form.append('minified_url', minifiedFileUrl);
         form.append('source_map', compilation.assets[sourceMap].source(), {
           filename: sourceMap,
           contentType: 'application/json'
@@ -159,7 +163,7 @@ var RollbarSourceMapPlugin = function () {
         }
 
         if (!this.silent) {
-          console.info('Uploaded ' + sourceMap + ' to Rollbar'); // eslint-disable-line no-console
+          console.info('Uploaded ' + sourceMap + ' for ' + minifiedFileUrl + ' to Rollbar'); // eslint-disable-line no-console
         }
 
         cb();
